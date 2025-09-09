@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Windows.Forms;
 
 namespace CalcTest1
@@ -12,10 +13,12 @@ namespace CalcTest1
 
         double result;
         string _operator;
+        bool isError = false;
 
         #region Button Click Events
         private void n1_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "1";
@@ -28,6 +31,7 @@ namespace CalcTest1
 
         private void n2_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "2";
@@ -40,6 +44,7 @@ namespace CalcTest1
 
         private void n3_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "3";
@@ -52,6 +57,7 @@ namespace CalcTest1
 
         private void n4_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "4";
@@ -64,6 +70,7 @@ namespace CalcTest1
 
         private void n5_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "5";
@@ -76,6 +83,7 @@ namespace CalcTest1
 
         private void n6_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "6";
@@ -88,6 +96,7 @@ namespace CalcTest1
 
         private void n7_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "7";
@@ -100,6 +109,7 @@ namespace CalcTest1
 
         private void n8_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "8";
@@ -112,6 +122,7 @@ namespace CalcTest1
 
         private void n9_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "9";
@@ -124,11 +135,13 @@ namespace CalcTest1
 
         private void n0_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             textBox1.Text = textBox1.Text + "0";
         }
 
         private void point_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             if (textBox1.Text == "0" && textBox1.Text != null)
             {
                 textBox1.Text = "0.";
@@ -141,47 +154,56 @@ namespace CalcTest1
 
         private void clear_Click(object sender, EventArgs e)
         {
+            isError = false;
             textBox1.Text = "0";
         }
 
         private void addition_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             textBox1.Text += " + ";
             _operator = "+";
         }
 
         private void subtraction_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             textBox1.Text += " - ";
             _operator = "-";
         }
 
         private void multiplication_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             textBox1.Text += " * ";
             _operator = "*";
         }
 
         private void division_Click(object sender, EventArgs e)
         {
+            clearError(textBox1);
             textBox1.Text += " / ";
             _operator = "/";
         }
 
         private void equal_Click(object sender, EventArgs e)
         {
-            if (_operator == "/")
-            {
-                int findZero = textBox1.Text.IndexOf("/");
-                if (Convert.ToDouble(textBox1.Text.Substring(findZero + 2)) == 0) // TODO: find "/" and scan if 0 is divisor.
-                {
-                    textBox1.Text = "Cannot divide by zero";
-                }
-            }
-            else
+            clearError(textBox1);
+            try
             {
                 result = Evaluate(textBox1.Text);
                 textBox1.Text = Convert.ToString(result);
+            }
+            catch(Exception ex) when (ex is DivideByZeroException || (ex is EvaluateException))
+            {
+                textBox1.Text = "Cannot divide by zero";
+                isError = true;
+            }
+            catch(Exception ex)
+            {
+                textBox1.Text = "An error occurred";
+                isError = true;
+                Console.WriteLine(ex.Message);
             }
         }
         #endregion
@@ -195,12 +217,27 @@ namespace CalcTest1
             table.Columns.Add("expression", string.Empty.GetType(), expression);
             System.Data.DataRow row = table.NewRow();
             table.Rows.Add(row);
-            return double.Parse((string)row["expression"]);
+            double result = double.Parse((string)row["expression"]);
+
+            if(double.IsInfinity(result) || double.IsNaN(result))
+            {
+                throw new DivideByZeroException();
+            }
+            return result;
         }
 
         private void Calculator_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void clearError(TextBox textBox)
+        {
+            if(isError)
+            {
+                textBox.Text = "0";
+                isError = false;
+            }
         }
     }
 }
